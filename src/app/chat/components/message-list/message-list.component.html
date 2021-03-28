@@ -1,0 +1,8 @@
+<h3>Messages</h3>
+
+<ul class="message-list">
+  <li *ngFor="let message of getMessages()">
+    <span>{{ message.id }}</span>
+    <span>{{ message.text }}</span>
+  </li>
+</ul>
