@@ -3,6 +3,16 @@
 <ul class="message-list">
   <li *ngFor="let message of getMessages()">
     <span>{{ message.id }}</span>
-    <span>{{ message.text }}</span>
+    <span>{{ message.content }}</span>
   </li>
 </ul>
+
+<form [formGroup]="messageForm" (ngSubmit)="sendMessage()">
+  <div>
+    <label>
+      <input id="content" type="text" formControlName="content">
+    </label>
+  </div>
+
+  <button class="button" type="submit">Send</button>
+</form>
