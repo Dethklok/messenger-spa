@@ -63,3 +63,9 @@ import 'zone.js/dist/zone';  // Included with Angular CLI.
 /***************************************************************************************************
  * APPLICATION IMPORTS
  */
+
+/**
+ * Require for sockjs-client
+ * https://github.com/stomp-js/ng2-stompjs/issues/70
+ */
+(window as any).global = window;

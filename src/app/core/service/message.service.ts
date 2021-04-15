@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Message } from '@core/model/message.model';
 import { SaveMessageDto } from '@core/dto/save-message.dto';
+import { WebsocketService } from '@core/service/websocket.service';
 
 @Injectable({
   providedIn: 'root'
@@ -13,10 +14,12 @@ export class MessageService {
 
   constructor(
     private httpClient: HttpClient,
+    private websocketService: WebsocketService
   ) {
   }
 
   getAll(): Observable<Message[]> {
+    this.httpClient.get(`${environment.messengerServerUrl}/csrf`).subscribe((x) => console.log(x));
     return this.httpClient.get<Message[]>(this.messageEndpoint);
   }
 
@@ -24,9 +27,9 @@ export class MessageService {
     return this.httpClient.get<Message>(`${this.messageEndpoint}/${id}`);
   }
 
-  save(messageDto: SaveMessageDto): Observable<Message> {
-    console.log(document.cookie);
-    return this.httpClient.post<Message>(this.messageEndpoint, messageDto);
+  save(messageDto: SaveMessageDto): void {
+    // this.httpClient.post<Message>(this.messageEndpoint, messageDto);
+    this.websocketService.send<SaveMessageDto>('saveMessage', messageDto);
   }
 
   update(id: number, messageDto: SaveMessageDto): Observable<Message> {

@@ -39,15 +39,16 @@ export class MessageListComponent implements OnInit {
 
   sendMessage(): void {
     const dto: SaveMessageDto = this.messageForm.value;
-    const observable = this.editingMessageId !== null
-      ? this.messageService.update(this.editingMessageId, dto)
-      : this.messageService.save(dto);
-
-    observable.subscribe(message => {
-      this.addMessage(message);
-      this.messageForm.reset();
-      this.editingMessageId = null;
-    });
+    // const observable = this.editingMessageId !== null
+    //   ? this.messageService.update(this.editingMessageId, dto)
+    //   : this.messageService.save(dto);
+    //
+    // observable.subscribe(message => {
+    //   this.addMessage(message);
+    //   this.messageForm.reset();
+    //   this.editingMessageId = null;
+    // });
+    this.messageService.save(dto);
   }
 
   deleteMessage(id: number): void {
