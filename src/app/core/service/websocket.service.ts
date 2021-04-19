@@ -1,21 +1,23 @@
-import { Injectable } from '@angular/core';
+import { Injectable, OnDestroy } from '@angular/core';
 
 import * as SockJS from 'sockjs-client';
 import { environment } from '../../../environments/environment';
 import { Client, StompHeaders } from '@stomp/stompjs';
 import { KeycloakService } from 'keycloak-angular';
+import { CsrfProvider } from '../provider/csrf/csrf.provider';
 
 @Injectable({
   providedIn: 'root'
 })
-export class WebsocketService {
+export class WebsocketService implements OnDestroy {
 
   private readonly stompClient: Client;
   private readonly token: string;
   private readonly headers: StompHeaders;
 
   constructor(
-    protected readonly keycloakService: KeycloakService,
+    private readonly keycloakService: KeycloakService,
+    private readonly csrfProvider: CsrfProvider
   ) {
     const { token } = this.keycloakService.getKeycloakInstance();
 
@@ -25,32 +27,35 @@ export class WebsocketService {
 
     this.token = token;
     this.headers = this.getHeaders();
-    console.log(this.headers);
+
     this.stompClient = new Client({
-      brokerURL: `${environment.messengerServerUrl}/socket`,
       connectHeaders: this.headers,
       debug: !environment.production ? (msg => console.log(msg)) : undefined,
       reconnectDelay: 3000,
       connectionTimeout: 15000,
-      webSocketFactory: () => new SockJS(`${environment.messengerServerUrl}/socket/?access_token=${this.token}`),
+      webSocketFactory: () => new SockJS(`${environment.messengerServerUrl}/socket`),
     });
 
     this.stompClient.activate();
   }
 
-  isConnected(): boolean {
-    return this.stompClient.connected;
-  }
-
   send<T>(path: string, body: T): void {
     this.stompClient.publish({
-      headers: this.headers,
       destination: `/app/${path}`,
       body: JSON.stringify(body)
     });
   }
 
+  ngOnDestroy(): void {
+    if (this.stompClient.connected) {
+      this.stompClient.deactivate();
+    }
+  }
+
   private getHeaders(): StompHeaders {
-    return { Authorization: `Bearer ${this.token}` };
+    return {
+      Authorization: `Bearer ${this.token}`,
+      // [this.csrfProvider.getHeaderName()]: this.csrfProvider.getToken()
+    };
   }
 }

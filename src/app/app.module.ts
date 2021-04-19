@@ -6,6 +6,8 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { SharedModule } from './shared/shared.module';
 import { initializeKeycloak } from '@core/auth/init';
+import { csrfProviderFactory } from './core/provider/csrf/csrf.factory';
+import { CsrfProvider } from './core/provider/csrf/csrf.provider';
 
 @NgModule({
   declarations: [
@@ -23,6 +25,12 @@ import { initializeKeycloak } from '@core/auth/init';
       useFactory: initializeKeycloak,
       multi: true,
       deps: [KeycloakService]
+    },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: csrfProviderFactory,
+      multi: true,
+      deps: [CsrfProvider]
     }
   ],
   bootstrap: [AppComponent]
