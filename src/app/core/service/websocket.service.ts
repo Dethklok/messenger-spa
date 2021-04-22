@@ -2,9 +2,8 @@ import { Injectable, OnDestroy } from '@angular/core';
 
 import * as SockJS from 'sockjs-client';
 import { environment } from '../../../environments/environment';
-import { Client, StompHeaders } from '@stomp/stompjs';
+import { Client, IMessage, StompHeaders } from '@stomp/stompjs';
 import { KeycloakService } from 'keycloak-angular';
-import { CsrfProvider } from '../provider/csrf/csrf.provider';
 
 @Injectable({
   providedIn: 'root'
@@ -14,10 +13,10 @@ export class WebsocketService implements OnDestroy {
   private readonly stompClient: Client;
   private readonly token: string;
   private readonly headers: StompHeaders;
+  private subscribers: Map<string, (message: IMessage) => void>;
 
   constructor(
     private readonly keycloakService: KeycloakService,
-    private readonly csrfProvider: CsrfProvider
   ) {
     const { token } = this.keycloakService.getKeycloakInstance();
 
@@ -25,6 +24,7 @@ export class WebsocketService implements OnDestroy {
       throw new Error('Error while creating WebsocketService: auth token not found!');
     }
 
+    this.subscribers = new Map();
     this.token = token;
     this.headers = this.getHeaders();
 
@@ -34,16 +34,27 @@ export class WebsocketService implements OnDestroy {
       reconnectDelay: 3000,
       connectionTimeout: 15000,
       webSocketFactory: () => new SockJS(`${environment.messengerServerUrl}/socket`),
+      onConnect: () => Array.from(this.subscribers.entries()).every(([path, callback]) => this.stompClient.subscribe(path, callback)),
     });
 
     this.stompClient.activate();
   }
 
-  send<T>(path: string, body: T): void {
+  publish<T>(path: string, body: T): void {
     this.stompClient.publish({
       destination: `/app/${path}`,
       body: JSON.stringify(body)
     });
+  }
+
+  subscribe<T>(path: string, callback: (body: T) => void): void {
+    const destination = `/topic/${path}`;
+
+    this.subscribers.set(destination, (message => {
+      if (message.body) {
+        callback(JSON.parse(message.body));
+      }
+    }));
   }
 
   ngOnDestroy(): void {
@@ -55,7 +66,6 @@ export class WebsocketService implements OnDestroy {
   private getHeaders(): StompHeaders {
     return {
       Authorization: `Bearer ${this.token}`,
-      // [this.csrfProvider.getHeaderName()]: this.csrfProvider.getToken()
     };
   }
 }

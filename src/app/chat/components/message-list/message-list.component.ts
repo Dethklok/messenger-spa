@@ -26,11 +26,8 @@ export class MessageListComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.messageService.getAll()
-      .subscribe(messages => {
-        this.messagesById = messages
-          .reduce((acc, m) => acc.set(m.id, m), this.messagesById);
-      });
+    this.loadMessages();
+    this.subscribeToMessages();
   }
 
   getMessages(): Message[] {
@@ -39,20 +36,22 @@ export class MessageListComponent implements OnInit {
 
   sendMessage(): void {
     const dto: SaveMessageDto = this.messageForm.value;
-    // const observable = this.editingMessageId !== null
-    //   ? this.messageService.update(this.editingMessageId, dto)
-    //   : this.messageService.save(dto);
-    //
-    // observable.subscribe(message => {
-    //   this.addMessage(message);
-    //   this.messageForm.reset();
-    //   this.editingMessageId = null;
-    // });
     this.messageService.save(dto);
   }
 
   deleteMessage(id: number): void {
     this.messageService.delete(id).subscribe(() => this.deleteMessage(id));
+  }
+
+  private loadMessages(): void {
+    this.messageService.getAll().subscribe(messages => {
+      this.messagesById = messages
+        .reduce((acc, message) => acc.set(message.id, message), this.messagesById);
+    });
+  }
+
+  private subscribeToMessages(): void {
+    this.messageService.subscribe((message) => this.messagesById.set(message.id, message));
   }
 
   private addMessage(message: Message): void {

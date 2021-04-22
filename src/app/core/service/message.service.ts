@@ -28,8 +28,7 @@ export class MessageService {
   }
 
   save(messageDto: SaveMessageDto): void {
-    // this.httpClient.post<Message>(this.messageEndpoint, messageDto);
-    this.websocketService.send<SaveMessageDto>('saveMessage', messageDto);
+    this.websocketService.publish<SaveMessageDto>('saveMessage', messageDto);
   }
 
   update(id: number, messageDto: SaveMessageDto): Observable<Message> {
@@ -38,5 +37,9 @@ export class MessageService {
 
   delete(id: number): Observable<void> {
     return this.httpClient.delete<void>(`${this.messageEndpoint}/${id}`);
+  }
+
+  subscribe(onMessageReceive: (message: Message) => void): void {
+    this.websocketService.subscribe<Message>('message', onMessageReceive);
   }
 }
