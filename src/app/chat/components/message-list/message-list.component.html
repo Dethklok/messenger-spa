@@ -2,8 +2,9 @@
 
 <ul class="message-list">
   <li *ngFor="let message of getMessages()">
-    <span>{{ message.id }}</span>
     <span>{{ message.content }}</span>
+    <button type="button" (click)="startEditingMessage(message.id)">Edit</button>
+    <button type="button" (click)="deleteMessage(message.id)">X</button>
   </li>
 </ul>
 

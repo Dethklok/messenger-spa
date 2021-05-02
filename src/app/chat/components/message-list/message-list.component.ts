@@ -34,9 +34,26 @@ export class MessageListComponent implements OnInit {
     return Array.from(this.messagesById.values());
   }
 
+  startEditingMessage(id: number): void {
+    const message = this.messagesById.get(id);
+
+    if (!message) {
+      throw new Error(`The message for edit with id ${id} not found`);
+    }
+
+    this.editingMessageId = id;
+    this.messageForm.setValue({ content: message.content });
+  }
+
   sendMessage(): void {
     const dto: SaveMessageDto = this.messageForm.value;
-    this.messageService.save(dto);
+    const { content } = this.messageForm.value;
+
+    this.editingMessageId
+      ? this.messageService.update(this.editingMessageId, content)
+      : this.messageService.save(content);
+
+    this.messageForm.reset();
   }
 
   deleteMessage(id: number): void {
@@ -52,20 +69,6 @@ export class MessageListComponent implements OnInit {
 
   private subscribeToMessages(): void {
     this.messageService.subscribe((message) => this.messagesById.set(message.id, message));
-  }
-
-  private addMessage(message: Message): void {
-    this.messagesById.set(message.id, message);
-  }
-
-  private getMessage(id: number): Message {
-    const message = this.messagesById.get(id);
-
-    if (message === undefined) {
-      throw new Error(`Message with id ${id} not found`);
-    }
-
-    return message;
   }
 
 }

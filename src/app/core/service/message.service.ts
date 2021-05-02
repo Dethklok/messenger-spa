@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { Message } from '@core/model/message.model';
 import { SaveMessageDto } from '@core/dto/save-message.dto';
 import { WebsocketService } from '@core/service/websocket.service';
+import { UpdateMessageDto } from '../dto/update-message.dto';
 
 @Injectable({
   providedIn: 'root'
@@ -27,12 +28,12 @@ export class MessageService {
     return this.httpClient.get<Message>(`${this.messageEndpoint}/${id}`);
   }
 
-  save(messageDto: SaveMessageDto): void {
-    this.websocketService.publish<SaveMessageDto>('saveMessage', messageDto);
+  save(content: string): void {
+    this.websocketService.publish<SaveMessageDto>('saveMessage', { content });
   }
 
-  update(id: number, messageDto: SaveMessageDto): Observable<Message> {
-    return this.httpClient.put<Message>(`${this.messageEndpoint}/${id}`, messageDto);
+  update(id: number, content: string): void {
+    this.websocketService.publish<UpdateMessageDto>('updateMessage', { id, content });
   }
 
   delete(id: number): Observable<void> {
