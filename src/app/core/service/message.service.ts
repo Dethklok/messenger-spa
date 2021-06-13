@@ -33,7 +33,7 @@ export class MessageService {
   }
 
   update(id: number, content: string): void {
-    this.websocketService.publish<UpdateMessageDto>('updateMessage', { id, content });
+    this.websocketService.publish<UpdateMessageDto>(`updateMessage/${id}`, { content });
   }
 
   delete(id: number): Observable<void> {
